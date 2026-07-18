@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title>Verify Intern | ZeonX Solutions</title>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+
+        <div class="container nav-wrap">
+
+            <a class="brand" href="index.html">
+                <span class="brand-mark">ZX</span>
+                <span>
+                    ZEONX SOLUTIONS
+                    <small>PROJECT INTERNSHIPS</small>
+                </span>
+            </a>
+
+            <button class="menu-btn" id="menuBtn">☰</button>
+
+            <div class="nav-links" id="navLinks">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a class="active" href="verify.html">Verify</a>
+                <a href="login.html">Login</a>
+
+                <a class="btn btn-primary" data-register target="_blank">
+                    Register
+                </a>
+            </div>
+
+        </div>
+
+    </nav>
+
+    <!-- Hero -->
+    <header class="page-hero">
+
+        <div class="container">
+
+            <span class="eyebrow">
+                Document Verification
+            </span>
+
+            <h1>
+                Verify a ZeonX intern
+            </h1>
+
+            <p>
+                Enter the Intern ID exactly as printed on the
+                offer letter or completion certificate.
+            </p>
+
+        </div>
+
+    </header>
+
+    <!-- Verification Form -->
+    <section class="section">
+
+        <div class="container" style="max-width:780px">
+
+            <div class="panel">
+
+                <form id="verifyForm">
+
+                    <div class="form-group">
+
+                        <label for="internId">
+                            Intern ID
+                        </label>
+
+                        <input
+                            class="input"
+                            id="internId"
+                            placeholder="Example: ZX-2026-001001"
+                            required>
+
+                    </div>
+
+                    <button class="btn btn-primary" style="width:100%">
+                        Verify Intern ID
+                    </button>
+
+                </form>
+
+                <div id="verifyMessage" style="margin-top:18px"></div>
+
+                <div
+                    id="verifyResult"
+                    class="hidden"
+                    style="margin-top:20px">
+
+                    <div class="notice success">
+                        ✓ This Intern ID is registered with ZeonX Solutions.
+                    </div>
+
+                    <table
+                        class="table"
+                        style="margin-top:15px;min-width:0">
+
+                        <tbody id="verifyBody"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- Scripts -->
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+
+    <script>
+        verifyForm.addEventListener('submit', async e => {
+
+            e.preventDefault();
+
+            verifyMessage.innerHTML =
+                '<div class="notice">Checking verification record...</div>';
+
+            verifyResult.classList.add('hidden');
+
+            try {
+
+                const r = await ZeonX.api('verify', {
+                    internId: internId.value.trim()
+                });
+
+                const s = r.student;
+
+                verifyBody.innerHTML = `
+                    <tr>
+                        <th>Intern Name</th>
+                        <td>${s.name}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Intern ID</th>
+                        <td>${s.internId}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Domain</th>
+                        <td>${s.domain}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Duration</th>
+                        <td>${s.duration}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Status</th>
+                        <td>
+                            <span class="status ${s.status.toLowerCase()}">
+                                ${s.status}
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Projects</th>
+                        <td>
+                            ${s.completedProjects || 0}
+                            /
+                            ${s.requiredProjects || 2}
+                            completed
+                        </td>
+                    </tr>
+                `;
+
+                verifyMessage.innerHTML = '';
+                verifyResult.classList.remove('hidden');
+
+            } catch (err) {
+
+                verifyMessage.innerHTML = `
+                    <div class="notice error">
+                        ${err.message}
+                    </div>
+                `;
+
+            }
+
+        });
+    </script>
+
+</body>
+
+</html>

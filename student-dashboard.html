@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title>Student Dashboard | ZeonX</title>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div class="brand side-brand">
+                <span class="brand-mark">ZX</span>
+                <span>
+                    ZEONX
+                    <small style="color:#9faac1">
+                        STUDENT PORTAL
+                    </small>
+                </span>
+            </div>
+
+            <nav class="side-nav">
+                <a class="active" href="#overview">▦ Overview</a>
+                <a href="#projects">⌘ Projects</a>
+                <a href="#documents">▤ Documents</a>
+                <a href="verify.html">✓ Verification</a>
+                <a href="#" onclick="ZeonX.logout()">↪ Logout</a>
+            </nav>
+
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dash-main">
+
+            <!-- Top Bar -->
+            <div class="dash-top">
+
+                <div>
+                    <small style="color:#657087">
+                        STUDENT DASHBOARD
+                    </small>
+
+                    <h1 style="margin:2px 0">
+                        Welcome,
+                        <span id="studentName">
+                            Student
+                        </span>
+                    </h1>
+                </div>
+
+                <div style="display:flex;gap:10px">
+                    <button class="btn btn-soft" onclick="load()">
+                        ↻ Refresh
+                    </button>
+
+                    <button class="btn btn-soft" onclick="ZeonX.logout()">
+                        Logout
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Statistics -->
+            <section class="stats" id="overview">
+
+                <div class="stat">
+                    <span>Intern ID</span>
+                    <strong id="internId" style="font-size:18px">-</strong>
+                </div>
+
+                <div class="stat">
+                    <span>Domain</span>
+                    <strong id="domain" style="font-size:18px">-</strong>
+                </div>
+
+                <div class="stat">
+                    <span>Duration</span>
+                    <strong id="duration">-</strong>
+                </div>
+
+                <div class="stat">
+                    <span>Status</span>
+                    <strong id="status">-</strong>
+                </div>
+
+            </section>
+
+            <!-- Projects -->
+            <section class="panel" id="projects">
+
+                <div class="dash-head">
+
+                    <div>
+                        <small>ASSIGNED WORK</small>
+                        <h2 style="margin:2px 0">
+                            Project Submissions
+                        </h2>
+                    </div>
+
+                    <span id="projectCount" class="status active"></span>
+
+                </div>
+
+                <p style="color:#657087">
+                    Submit a public GitHub repository link for each assigned project.
+                    Make sure your repository contains source code and a clear README file.
+                </p>
+
+                <div id="projectsList"></div>
+
+            </section>
+
+            <!-- Documents -->
+            <section
+                class="panel"
+                id="documents"
+                style="margin-top:20px">
+
+                <div class="dash-head">
+
+                    <div>
+                        <small>DOWNLOAD CENTRE</small>
+
+                        <h2 style="margin:2px 0">
+                            Internship Documents
+                        </h2>
+                    </div>
+
+                </div>
+
+                <p style="color:#657087">
+                    Documents uploaded by the administrator will appear here.
+                    Use the download button to save the PDF.
+                </p>
+
+                <div class="student-document-grid">
+
+                    <!-- Offer Letter -->
+                    <div class="student-document-card">
+
+                        <div class="document-icon">▤</div>
+
+                        <div>
+                            <h3>Offer Letter</h3>
+                            <p id="offerMessage">
+                                Waiting for admin upload.
+                            </p>
+                        </div>
+
+                        <a
+                            id="offerLink"
+                            class="btn btn-outline disabled-link"
+                            aria-disabled="true">
+                            Not Available
+                        </a>
+
+                    </div>
+
+                    <!-- Certificate -->
+                    <div class="student-document-card">
+
+                        <div class="document-icon">✓</div>
+
+                        <div>
+                            <h3>Completion Certificate</h3>
+                            <p id="certificateMessage">
+                                Waiting for admin upload.
+                            </p>
+                        </div>
+
+                        <a
+                            id="certificateLink"
+                            class="btn btn-outline disabled-link"
+                            aria-disabled="true">
+                            Not Available
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+
+    <script>
+
+        const session = ZeonX.getSession();
+
+        if (!session || session.role !== 'student')
+            location.href = 'login.html';
+
+        async function load() {
+
+            try {
+
+                const r = await ZeonX.api('getStudent', {
+                    internId: session.internId
+                });
+
+                const s = r.student || session;
+
+                document.getElementById('studentName').textContent = s.name;
+                document.getElementById('internId').textContent = s.internId;
+                document.getElementById('domain').textContent = s.domain;
+                document.getElementById('duration').textContent = s.duration;
+                document.getElementById('status').textContent = s.status;
+
+                const projects = s.projects || [];
+
+                document.getElementById('projectCount').textContent =
+                    `${projects.filter(p =>
+                        p.status === 'Submitted' ||
+                        p.status === 'Completed'
+                    ).length} / ${projects.length} submitted`;
+
+                document.getElementById('projectsList').innerHTML =
+                    projects.map((p, i) => `
+                        <div class="project-item">
+
+                            <div class="project-head">
+
+                                <div>
+                                    <small>PROJECT ${i + 1}</small>
+
+                                    <h3 style="margin:2px 0">
+                                        ${escapeHtml(p.title)}
+                                    </h3>
+                                </div>
+
+                                <span class="status ${p.status === 'Pending' ? 'pending' : 'active'}">
+                                    ${escapeHtml(p.status)}
+                                </span>
+
+                            </div>
+
+                            <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+
+                                <input
+                                    class="input"
+                                    id="github${i}"
+                                    value="${escapeHtml(p.github || '')}"
+                                    placeholder="https://github.com/username/repository"
+                                    style="flex:1;min-width:250px">
+
+                                <button
+                                    class="btn btn-primary"
+                                    onclick="submitProject(${i})">
+                                    Submit Link
+                                </button>
+
+                            </div>
+
+                        </div>
+                    `).join('');
+
+                setDocument(
+                    'offerLink',
+                    'offerMessage',
+                    s.offerLetter,
+                    'Download Offer Letter',
+                    'Offer letter is ready to download.'
+                );
+
+                setDocument(
+                    'certificateLink',
+                    'certificateMessage',
+                    s.certificate,
+                    'Download Certificate',
+                    'Certificate is ready to download.'
+                );
+
+            } catch (e) {
+
+                alert(e.message || 'Unable to load dashboard.');
+
+            }
+
+        }
+
+        function escapeHtml(v = '') {
+
+            return String(v).replace(
+                /[&<>'"]/g,
+                c => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[c])
+            );
+
+        }
+
+        function setDocument(linkId, messageId, url, label, readyMessage) {
+
+            const a = document.getElementById(linkId);
+            const m = document.getElementById(messageId);
+
+            if (url) {
+
+                a.textContent = label;
+                a.href = url;
+                a.setAttribute('download', '');
+                a.target = '_blank';
+                a.rel = 'noopener';
+
+                a.classList.remove('disabled-link');
+                a.removeAttribute('aria-disabled');
+
+                m.textContent = readyMessage;
+
+            } else {
+
+                a.textContent = 'Not Available';
+                a.removeAttribute('href');
+                a.removeAttribute('download');
+
+                a.classList.add('disabled-link');
+                a.setAttribute('aria-disabled', 'true');
+
+                m.textContent = 'Waiting for admin upload.';
+
+            }
+
+        }
+
+        setInterval(load, 30000);
+
+        window.addEventListener('focus', load);
+
+        async function submitProject(i) {
+
+            const github =
+                document.getElementById('github' + i)
+                    .value
+                    .trim();
+
+            if (!/^https:\/\/github\.com\//i.test(github))
+                return alert('Please enter a valid GitHub repository URL.');
+
+            await ZeonX.api('submitProject', {
+                internId: session.internId,
+                index: i,
+                github
+            });
+
+            alert('Project link submitted successfully.');
+
+            load();
+
+        }
+
+        load();
+
+    </script>
+
+</body>
+
+</html>
